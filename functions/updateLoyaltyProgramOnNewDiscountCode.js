@@ -1,17 +1,11 @@
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
 
-
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
-
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
 //need to switch to FieldValue.increment, because this function might be called at the same time for dif things?
 //const FieldValue = require('firebase-admin');
 
-exports.updateLoyaltyProgramOnNewDiscountCode = functions.firestore
+const updateLoyaltyProgramOnNewDiscountCodeFunction = functions.firestore
   .document('discountcodes-zKL7SQ0jRP8351a0NnHM/{discountID}')
   .onCreate(async (snap, context) => {
 
@@ -41,3 +35,5 @@ exports.updateLoyaltyProgramOnNewDiscountCode = functions.firestore
             console.log(error)
         })
 })
+
+export default updateLoyaltyProgramOnNewDiscountCodeFunction;

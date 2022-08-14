@@ -1,4 +1,4 @@
-// const functions = require("firebase-functions");
+
 
 // SCHEDULED FUNCTIONS
 // note for scheduled functions like pubsub, see this video at 28 min https://www.youtube.com/watch?v=gA6WGYQWrKc
@@ -12,27 +12,58 @@
 // ALLOW UNAUTHENTICATED INVOKATION OF FUNCTION TO WRITE TO DB
 // https://cloud.google.com/functions/docs/securing/managing-access-iam#console_4
 
-// import { receiveOrder1 } from './receiveOrder.mjs';
-// exports.receiveOrder = receiveOrder1.receiveOrder;
+//Set up Firebase
+import admin from "firebase-admin";
+admin.initializeApp(functions.config().firebase);
 
-
-// const shopify = require("./shopify");
-// exports.shopify = shopify.app;
+//Required Firebase on every file
 import functions from "firebase-functions";
 
-//test123
-
+//Pull in all the functions from the dif files
 import nameOfTest123 from "./test123.js";
+//import app from "./shopify.js";
+import shopifyWebhook from "./shopifyWebhook.js";
+import testReceiveOrder from "./testReceiveOrder.js";
+import receiveOrder from "./receiveOrder.js";
+import GQLresult from "./makeGQLonNewDiscount.js";
+import createHistoryOnNewDiscountFunction from "./createHistoryOnNewDiscount.js";
+import createHistoryOnNewOrderFunction from "./createHistoryOnNewOrder.js";
+import createHistoryOnNewReferralFunction from "./createHistoryOnNewReferral.js";
+import createHistoryOnNewReviewFunction from "./createHistoryOnNewReview.js";
+import updateLoyaltyProgramOnNewDiscountCodeFunction from "./updateLoyaltyProgramOnNewDiscountCode.js";
+import updateLoyaltyProgramOnNewHistoryItemFunction from "./updateLoyaltyProgramOnNewHistoryItem.js";
 
-import app from "./shopify.js";
-
+//Bring in the functions
 export const helloWorld = functions.https.onRequest((request, response) => {
     response.send("Hello from Firebase!");
   });
 
 export const api = nameOfTest123;
 
-export const shopifyAuth = functions.https.onRequest(app);
+//export const shopifyAuth = functions.https.onRequest(app);
+
+export const webhook = functions.https.onRequest(shopifyWebhook);
+
+export const receivingOrderTest = functions.https.onRequest(testReceiveOrder);
+
+export const receivingOrder = functions.https.onRequest(receiveOrder);
+
+export const graphQLAPI = GQLresult;
+
+export const createHistoryOnNewDiscount = createHistoryOnNewDiscountFunction;
+
+export const createHistoryOnNewOrder = createHistoryOnNewOrderFunction;
+
+export const createHistoryOnNewReferral = createHistoryOnNewReferralFunction;
+
+export const createHistoryOnNewReview = createHistoryOnNewReviewFunction;
+
+export const updateLoyaltyProgramOnNewDiscountCode = updateLoyaltyProgramOnNewDiscountCodeFunction;
+
+export const updateLoyaltyProgramOnNewHistoryItem = updateLoyaltyProgramOnNewHistoryItemFunction;
+
+
+
 // import express from "express";
 // import { shopifyWebhook } from "./shopifyWebhook.js";
 

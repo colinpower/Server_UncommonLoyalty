@@ -4,8 +4,6 @@ import admin from "firebase-admin";
 import functions from "firebase-functions";
 
 
-admin.initializeApp(functions.config().firebase);
-
 
 const nameOfTest123 = functions.firestore
   .document('orders-zKL7SQ0jRP8351a0NnHM/{orderID}')

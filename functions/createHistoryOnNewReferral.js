@@ -1,11 +1,7 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
-
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
-
-exports.createHistoryOnNewReferral = functions.firestore
+const createHistoryOnNewReferralFunction = functions.firestore
   .document('referrals-zKL7SQ0jRP8351a0NnHM/{referralID}')
   .onCreate(async (snap, context) => {
 
@@ -42,3 +38,5 @@ exports.createHistoryOnNewReferral = functions.firestore
     return admin.firestore().collection("history-zKL7SQ0jRP8351a0NnHM").add(historyEntryForNewReferral)
 
 })
+
+export default createHistoryOnNewReferralFunction;

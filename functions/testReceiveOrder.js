@@ -1,12 +1,10 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+import admin from "firebase-admin";
+import functions from "firebase-functions";
+
+import express from "express";
+import bodyParser from "body-parser";
 
 
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
 
 const testReceiveOrder = express();
 testReceiveOrder.use(bodyParser.json());
@@ -168,7 +166,7 @@ testReceiveOrder.post('/', async (req, res) => {
 })
 
 
-exports.testReceiveOrder = functions.https.onRequest(testReceiveOrder);
+export default testReceiveOrder;
 
 
 

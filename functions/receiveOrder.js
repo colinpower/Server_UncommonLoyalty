@@ -1,20 +1,20 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+import admin from "firebase-admin";
+import functions from "firebase-functions";
+
+import express from "express";
+import bodyParser from "body-parser";
+
+import { title } from "process";
+//const { title } = require("process");
 
 
-const functions = require("firebase-functions");
-
-
-
-const express = require("express");
-const admin = require("firebase-admin");
-const { title } = require("process");
-
-//don't need to call this twice, since it's initialized in a dif module
-//admin.initializeApp(functions.config().firebase);
 
 //create app
 const receiveOrder = express();
+receiveOrder.use(bodyParser.json());
+receiveOrder.use(bodyParser.urlencoded({
+    extended: true,
+}));
 
 //route for a POST message
 receiveOrder.post("/", async (req, res) => {
@@ -69,4 +69,4 @@ receiveOrder.post("/", async (req, res) => {
     res.status(201).send();
 });
 
-exports.receiveOrder = functions.https.onRequest(receiveOrder);
+export default receiveOrder;

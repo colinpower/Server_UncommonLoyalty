@@ -12,13 +12,11 @@
 
 //may need composite index
 //const { userID } = await admin.firestore().collection('loyaltyprograms').where('companyID', '==', 'zKL7SQ0jRP8351a0NnHM').where('email', '==', email).get();
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
 
-exports.createHistoryOnNewOrder = functions.firestore
+const createHistoryOnNewOrderFunction = functions.firestore
   .document('orders-zKL7SQ0jRP8351a0NnHM/{orderID}')
   .onCreate(async (snap, context) => {
 
@@ -124,3 +122,5 @@ exports.createHistoryOnNewOrder = functions.firestore
     }
 });  
 
+
+export default createHistoryOnNewOrderFunction;

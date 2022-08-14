@@ -5,20 +5,16 @@
 // import * as http from 'http';
 
 
-import express from 'express';
-import bodyParser from 'body-parser';
-import admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
-// import { createRequire } from "module";
-// const require = createRequire(import.meta.url);
+import express from "express";
+import bodyParser from "body-parser";
 
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const admin = require('firebase-admin');
-// const functions = require('firebase-functions');
 
-admin.initializeApp(functions.config().firebase);
+
+
+//admin.initializeApp(functions.config().firebase);
 
 //used for local testing
 // const host = '192.168.0.127';
@@ -154,7 +150,7 @@ shopifyWebhook.post("/", async (req, res) => {
 });
 
 //exports.shopifyWebhook = functions.https.onRequest(shopifyWebhook);
-export { shopifyWebhook };
+export default shopifyWebhook;
 
 //used for testing
 // shopifyWebhook.listen(port, () => {

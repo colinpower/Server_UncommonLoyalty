@@ -1,13 +1,7 @@
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
-
-
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
-
-exports.createHistoryOnNewReview = functions.firestore
+const createHistoryOnNewReviewFunction = functions.firestore
   .document('reviews-zKL7SQ0jRP8351a0NnHM/{reviewID}')
   .onCreate(async (snap, context) => {
 
@@ -44,3 +38,5 @@ exports.createHistoryOnNewReview = functions.firestore
     return admin.firestore().collection("history-zKL7SQ0jRP8351a0NnHM").add(historyEntryForNewReview)
 
 })
+
+export default createHistoryOnNewReviewFunction;

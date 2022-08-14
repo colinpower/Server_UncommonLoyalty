@@ -1,13 +1,12 @@
 
 
+import admin from "firebase-admin";
+import functions from "firebase-functions";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
 
-exports.createHistoryOnNewDiscount = functions.firestore
+
+const createHistoryOnNewDiscountFunction = functions.firestore
   .document('discountcodes-zKL7SQ0jRP8351a0NnHM/{discountID}')
   .onCreate(async (snap, context) => {
 
@@ -47,3 +46,5 @@ exports.createHistoryOnNewDiscount = functions.firestore
     return admin.firestore().collection("history-zKL7SQ0jRP8351a0NnHM").add(historyEntryForNewDiscount)
 
 })
+
+export default createHistoryOnNewDiscountFunction;
