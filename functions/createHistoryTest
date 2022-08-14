@@ -1,0 +1,56 @@
+const admin = require('firebase-admin');
+const functions = require('firebase-functions');
+
+exports.createHistoryTest = functions.firestore
+  .document('companies/{company}')
+  .onCreate(async (snap, context) => {
+    
+    var userID = "";
+    console.log(userID);
+
+    const email = snap.data().email;
+
+    //may need composite index
+    //const { userID } = await admin.firestore().collection('loyaltyprograms').where('companyID', '==', 'zKL7SQ0jRP8351a0NnHM').where('email', '==', email).get();
+
+    const userSnapshot = await admin.firestore().collection('users').where('email', '==', email).get()
+        // .then(async (snapshots) => {
+        //     if (!snapshots.exists) {
+        //         console.log("no user exists");
+        //         return
+        //     } else {
+        //         snapshots.forEach(doc => {
+        //             userID = doc.id;
+        //             console.log("user id is");
+        //             console.log(userID);
+        //         })
+        //     }
+        // });
+
+    if (userSnapshot.empty) {
+        // no user exists
+        console.log("no user exists");
+        return
+    } else {
+        console.log('found a user ID for this email');
+        userSnapshot.forEach(doc => {
+            userID = doc.id;
+        });
+    }
+
+
+    //this will update the existing orderID!
+    await admin.firestore().collection('users').doc(userID).update({newUpdate: userID})
+
+
+    console.log(userID);
+
+    // create first message from customer
+    const historyEntryForNewOrder = {
+        test: userID
+    };
+
+    const ref = admin.firestore().collection("loyaltyprograms")
+    return ref.add(historyEntryForNewOrder)
+
+  });  
