@@ -21,8 +21,8 @@ const { json } = bodyParser;
 
 
 import fetch from "node-fetch";
-const host = '127.0.0.1';
-const port = 5000;
+// const host = '127.0.0.1';
+// const port = 5000;
 
 
 const graphQLExpress = express();
@@ -34,71 +34,85 @@ graphQLExpress.use(bodyParser.urlencoded({
 }));
   
 
-graphQLExpress.get("/", async (req, res) => {
+// graphQLExpress.get("/", async (req, res) => {
 
-    //   https://us-central1-uncommon-loyalty.cloudfunctions.net/makeDiscountRequestGQL",
+//     //https://us-central1-uncommon-loyalty.cloudfunctions.net/makeDiscountRequestGQL",
 
-    const bodyOfPOST = {
-        company: "Athleisure",
-        code: "H",
-        title: "created by postman",
-        dollarAmount: 10.05
-    };
+//     const bodyOfPOST = {
+//         code: "B4",
+//         company: "Athleisure",
+//         dollarAmount: 10,
+//         title: "fake title",
+//         usageLimit: 1
+//     };
 
-    const response = await fetch("https://9d63-205-178-78-227.ngrok.io", {
-        method: "POST", 
-        body: JSON.stringify(bodyOfPOST),
-        headers: { "Content-Type": "application/json" }
-    });
 
-    const responseJSON1 = await response.json()
+//     const response = await fetch("https://8ed3-205-178-78-227.ngrok.io", {
+//         method: "POST", 
+//         body: JSON.stringify(bodyOfPOST),
+//         headers: { "Content-Type": "application/json" }
+//     });
 
-    console.log(responseJSON1);
-    //const variable1 = JSON.parse(responseJSON1)
-    console.log("ABOUT TO RESPOND TO POSTMAN");
-    //console.log(responseJSON1);
+//     //console.log(response.json());
+//     //const response3 = response2.clone();
+//     const data = await response.json();
 
-    //console.log("REPSONSE IS" + JSON.parse(response.json));
+//     console.log(typeof data);
+//     console.log(data.graphqlID);
+//     // const data2 = await JSON.parse(data);
 
-    res.status(200).send(responseJSON1)
+//     // console.log(data2);
+//     // const data3 = data2.graphqlID;
 
-})
+//     //console.log(gqlLink);
+
+//     //console.log(responseJSON1);
+//     //console.log(responseJSON1.body);
+//     //const variable1 = JSON.parse(responseJSON1)
+//     //console.log("ABOUT TO RESPOND TO POSTMAN");
+//     //console.log(responseJSON1);
+
+//     //console.log("REPSONSE IS" + JSON.parse(response.json));
+
+//     res.sendStatus(200)
+// })
 
 
 
 graphQLExpress.post("/", async (req, res) => {
 
-    var company = req.body.company;
+    //Get variables from the body of the request
     var code = req.body.code;
-    var title = req.body.title;
+    var company = req.body.company;
     var dollarAmount = req.body.dollarAmount;
+    var title = req.body.title;
+    var usageLimit = req.body.usageLimit;
     
-
-    console.log("Company")
-    console.log(req.body)
-    console.log(req.body.code)
-
-    //var company = "Athleisure";
     var typeOfDiscount = "AMOUNT_NOMINIMUM_1USE_1CUSTOMER_NODEADLINE";
 
-    var companyDomain = "athleisure-la.myshopify.com";
+    
+    
+    
 
-    var usageLimit = 1;
-    var dollarAmount = 10.00;
-    var code = code;
-    var title = "FIREBASETITLE123";  //"Uncommon: Redeemed Points for $" + String(dollarAmount) + " Discount"
+    // var usageLimit = 1;
+    // var dollarAmount = 10.00;
+    // var code = code;
+    // var title = "FIREBASETITLE123";  //"Uncommon: Redeemed Points for $" + String(dollarAmount) + " Discount"
 
 
     //#region Step 2: Use company name to get correct access token from process.env
     switch (company) {
         case "Athleisure":
             var accessToken = process.env.ATHLEISURE_ACCESS_TOKEN;
+            var companyDomain = "athleisure-la.myshopify.com";
             break;
         case "Hello-vip":
             var accessToken = process.env.HELLOVIP_ACCESS_TOKEN;
+            var companyDomain = "hello-vip.myshopify.com";
             break;
         case "Hello-vip-test-1":
             var accessToken = process.env.HELLOVIPTEST1_ACCESS_TOKEN;
+            var companyDomain = "hello-vip-test-1.myshopify.com";
             break;
         default:
             //throw an error.. can't find the access token
@@ -173,24 +187,16 @@ graphQLExpress.post("/", async (req, res) => {
         data: {
             query: discountMutation,
             variables: {
-                "usageLimit": usageLimit,
-                "dollarAmount": dollarAmount,
                 "code": code,
-                "title": title
+                "dollarAmount": dollarAmount,
+                "title": title,
+                "usageLimit": usageLimit
             }
         }
     })
     //#endregion
+     
     
-    console.log("JSON RESPONSE GRAPHQL");
-    //console.log(JSON.stringify(result.body.data.discountCodeBasicCreate.codeDiscountNode));
-    // console.log(JSON.stringify(result.body.data.discountCodeBasicCreate.codeDiscountNode.id));
-    // console.log(result.body.data.discountCodeBasicCreate.codeDiscountNode.id);
-    // console.log(typeof result.body.data.discountCodeBasicCreate.codeDiscountNode.id);
-    
-    const gid = result.body.data.discountCodeBasicCreate.codeDiscountNode.id;
-    console.log(gid);
-
     //Step 4. return the products
 
     //check if there was an error
@@ -201,20 +207,21 @@ graphQLExpress.post("/", async (req, res) => {
     } else if (result.body.data.discountCodeBasicCreate.userErrors.length == 0) {
         //no errors
         console.log("No errors");
-
+        
         console.log(result.body.data.discountCodeBasicCreate.codeDiscountNode.id);
         console.log(typeof result.body.data.discountCodeBasicCreate.codeDiscountNode.id);
 
+        const gid = result.body.data.discountCodeBasicCreate.codeDiscountNode.id
         const responseWithGID = {
             graphqlID: gid
         };
 
-        const responseWithGIDToJSON = JSON.stringify(responseWithGID);
+        //const responseWithGIDToJSON = JSON.stringify(responseWithGID);
 
-        console.log(responseWithGIDToJSON);
+        // console.log(responseWithGIDToJSON);
 
         //send 201: Created. Then pass back the GID for this resource, so I can cancel it in the future.. e.g. gid://shopify/DiscountCodeNode/1197363626239
-        res.status(201).json(responseWithGIDToJSON);
+        res.status(201).json(responseWithGID);
 
     } else {
         //other error...

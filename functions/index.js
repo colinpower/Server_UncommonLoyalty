@@ -27,7 +27,7 @@ import testReceiveOrder from "./testReceiveOrder.js";
 import receiveOrder from "./receiveOrder.js";
 //import GQLresult from "./makeGQLonNewDiscount.js";
 
-import discountOnCreate from "./discount-onCreate";
+import discountOnCreate from "./discount-onCreate.js";
 
 import graphQLExpress from "./shopifyGraphQL.js";
 import createHistoryOnNewDiscountFunction from "./createHistoryOnNewDiscount.js";
