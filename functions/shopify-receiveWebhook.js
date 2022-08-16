@@ -2,14 +2,11 @@
 //https://gist.github.com/magician11/08a226555161d633e21fc2bcf374e708
 
 
-// import * as http from 'http';
-
-
 import admin from "firebase-admin";
 import functions from "firebase-functions";
-
 import express from "express";
 import bodyParser from "body-parser";
+import { title } from "process";
 
 
 
@@ -21,13 +18,13 @@ import bodyParser from "body-parser";
 // const port = 3000;
 
 
-const shopifyWebhook = express();
-shopifyWebhook.use(bodyParser.json());
-shopifyWebhook.use(bodyParser.urlencoded({
+const shopifyReceiveWebhook = express();
+shopifyReceiveWebhook.use(bodyParser.json());
+shopifyReceiveWebhook.use(bodyParser.urlencoded({
     extended: true,
 }));
 
-shopifyWebhook.post("/", async (req, res) => {
+shopifyReceiveWebhook.post("/", async (req, res) => {
 
     //res.send('OK');
 
@@ -36,22 +33,20 @@ shopifyWebhook.post("/", async (req, res) => {
     // x-shopify-order-id: 820982911946154508
 
     const webhookData = req.body;
-    const webhookHeader = req.header('x-shopify-shop-domain')
-    console.log(webhookHeader)
-
-    var companyID = ""
+    const shopDomain = req.header('x-shopify-shop-domain');
+    console.log(shopDomain);
 
 
-    switch(webhookHeader) {
+    switch(shopDomain) {
         case "athleisure-la.myshopify.com":
-            companyID = "zKL7SQ0jRP8351a0NnHM"
+            var companyID = "zKL7SQ0jRP8351a0NnHM"
             console.log("Matched the webhook header");
             break;
         case "ABC123":
-            companyID = "ABC123-noHeaderMatched"
+            var companyID = "ABC123-noHeaderMatched"
             break;
         default:
-            companyID = "No header matched! We have an issue"
+            var companyID = "No header matched! We have an issue"
     }
 
     const current_timestamp = new Date().getTime();
@@ -149,11 +144,11 @@ shopifyWebhook.post("/", async (req, res) => {
 
 });
 
-//exports.shopifyWebhook = functions.https.onRequest(shopifyWebhook);
-export default shopifyWebhook;
+//exports.shopifyReceiveWebhook = functions.https.onRequest(shopifyReceiveWebhook);
+export default shopifyReceiveWebhook;
 
 //used for testing
-// shopifyWebhook.listen(port, () => {
+// shopifyReceiveWebhook.listen(port, () => {
 //     console.log(`Server running at ${port}`);
 // });
 

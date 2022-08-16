@@ -1,8 +1,8 @@
 import admin from "firebase-admin";
 import functions from "firebase-functions";
 
-const createHistoryOnNewReferralFunction = functions.firestore
-  .document('referrals-zKL7SQ0jRP8351a0NnHM/{referralID}')
+const referralOnCreate = functions.firestore
+  .document('referrals/{referralID}')
   .onCreate(async (snap, context) => {
 
     //grab necessary variables from the referral
@@ -35,8 +35,8 @@ const createHistoryOnNewReferralFunction = functions.firestore
         userID: userID
     };
 
-    return admin.firestore().collection("history-zKL7SQ0jRP8351a0NnHM").add(historyEntryForNewReferral)
+    return admin.firestore().collection("history").add(historyEntryForNewReferral)
 
 })
 
-export default createHistoryOnNewReferralFunction;
+export default referralOnCreate;

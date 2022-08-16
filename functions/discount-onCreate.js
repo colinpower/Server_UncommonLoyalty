@@ -63,23 +63,23 @@ const discountOnCreate = functions.firestore
         GID: gid
     };
 
-    // create history entry for this order
-    // const historyEntry = {
-    //     companyID: companyID,
-    //     description: "fill in later",
-    //     discountAmount: dollarAmount,
-    //     discountCode: code,
-    //     email: email,
-    //     orderID: "fill in later",
-    //     pointsEarnedOrSpent: pointsSpent * -1,
-    //     price: 0,
-    //     reviewID: "",
-    //     timestamp: current_timestamp,
-    //     type: "DISCOUNTCODE",
-    //     userID: userID
-    // };
+    //create history entry for this order
+    const historyEntry = {
+        companyID: companyID,
+        description: "fill in later",
+        discountAmount: dollarAmount,
+        discountCode: code,
+        email: email,
+        orderID: "fill in later",
+        pointsEarnedOrSpent: pointsSpent * -1,
+        price: 0,
+        reviewID: "",
+        timestamp: current_timestamp,
+        type: "DISCOUNTCODE",
+        userID: userID
+    };
 
-    //await admin.firestore().collection("history").add(historyEntry);
+    await admin.firestore().collection("history").add(historyEntry);
     return admin.firestore().collection("discount3").add(updateToDiscount);
 })
 

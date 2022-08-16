@@ -1,8 +1,8 @@
 import admin from "firebase-admin";
 import functions from "firebase-functions";
 
-const createHistoryOnNewReviewFunction = functions.firestore
-  .document('reviews-zKL7SQ0jRP8351a0NnHM/{reviewID}')
+const reviewOnCreate = functions.firestore
+  .document('reviews/{reviewID}')
   .onCreate(async (snap, context) => {
 
     //grab necessary variables from the review
@@ -35,8 +35,8 @@ const createHistoryOnNewReviewFunction = functions.firestore
         userID: userID
     };
 
-    return admin.firestore().collection("history-zKL7SQ0jRP8351a0NnHM").add(historyEntryForNewReview)
+    return admin.firestore().collection("history").add(historyEntryForNewReview)
 
 })
 
-export default createHistoryOnNewReviewFunction;
+export default reviewOnCreate;

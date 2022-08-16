@@ -25,16 +25,16 @@ import fetch from "node-fetch";
 // const port = 5000;
 
 
-const graphQLExpress = express();
+const shopifyCreateDiscount = express();
 // graphQLExpress.use(express.json());
 // graphQLExpress.use(express.urlencoded());
-graphQLExpress.use(bodyParser.json());
-graphQLExpress.use(bodyParser.urlencoded({
+shopifyCreateDiscount.use(bodyParser.json());
+shopifyCreateDiscount.use(bodyParser.urlencoded({
     extended: true,
 }));
   
 
-// graphQLExpress.get("/", async (req, res) => {
+// shopifyCreateDiscount.get("/", async (req, res) => {
 
 //     //https://us-central1-uncommon-loyalty.cloudfunctions.net/makeDiscountRequestGQL",
 
@@ -79,7 +79,7 @@ graphQLExpress.use(bodyParser.urlencoded({
 
 
 
-graphQLExpress.post("/", async (req, res) => {
+shopifyCreateDiscount.post("/", async (req, res) => {
 
     //Get variables from the body of the request
     var code = req.body.code;
@@ -235,12 +235,12 @@ graphQLExpress.post("/", async (req, res) => {
 
 });
 
-// graphQLExpress.listen(port, () => {
+// shopifyCreateDiscount.listen(port, () => {
 //     console.log(`Server running at http://${host}:${port}`)
 // })
 
 
-export default graphQLExpress;
+export default shopifyCreateDiscount;
 
 
 
