@@ -83,8 +83,9 @@ shopifyCreateDiscount.post("/", async (req, res) => {
 
     //Get variables from the body of the request
     var code = req.body.code;
-    var company = req.body.company;
     var dollarAmount = req.body.dollarAmount;
+    var domain = req.body.domain;
+    var graphqlID = req.body.graphqlID;
     var title = req.body.title;
     var usageLimit = req.body.usageLimit;
     
@@ -101,18 +102,15 @@ shopifyCreateDiscount.post("/", async (req, res) => {
 
 
     //#region Step 2: Use company name to get correct access token from process.env
-    switch (company) {
-        case "Athleisure":
+    switch (domain) {
+        case "athleisure-la.myshopify.com":
             var accessToken = process.env.ATHLEISURE_ACCESS_TOKEN;
-            var companyDomain = "athleisure-la.myshopify.com";
             break;
-        case "Hello-vip":
+        case "hello-vip.myshopify.com":
             var accessToken = process.env.HELLOVIP_ACCESS_TOKEN;
-            var companyDomain = "hello-vip.myshopify.com";
             break;
-        case "Hello-vip-test-1":
+        case "hello-vip-test-1.myshopify.com":
             var accessToken = process.env.HELLOVIPTEST1_ACCESS_TOKEN;
-            var companyDomain = "hello-vip-test-1.myshopify.com";
             break;
         default:
             //throw an error.. can't find the access token
@@ -167,11 +165,36 @@ shopifyCreateDiscount.post("/", async (req, res) => {
                     }
                     }
             }`
-            //#endregion
+
+            var variables = {
+                "code": code,
+                "dollarAmount": dollarAmount,
+                "title": title,
+                "usageLimit": usageLimit
+            }
             break;
+            //#endregion
+            
         case "AMOUNT_MINIMUM_1USE_1CUSTOMER_NODEADLINE":
             var discountMutation = "NEED TO WRITE THIS LATER"
+            var variables = {
+                "code": code,
+                "dollarAmount": dollarAmount,
+                "title": title,
+                "usageLimit": usageLimit
+            }
             break;
+
+        case "DELETE":
+            var discountMutation = 
+                `mutation deleteDiscount($id: ID!) {
+                    discountCodeDelete (id: $id) {
+                      deletedCodeDiscountId
+                    }
+                  }`
+            var variables = {
+                "id": graphqlID,
+            }
         default:
             var discountMutation = "NEED TO WRITE THIS LATER"
     }
@@ -180,18 +203,13 @@ shopifyCreateDiscount.post("/", async (req, res) => {
     //#region Step 4: Authenticate with Shopify, make the request
 
     //Auth with Shopify
-    const client = new Shopify.Clients.Graphql(companyDomain, accessToken);
+    const client = new Shopify.Clients.Graphql(domain, accessToken);
       
     //Making request to endpoint
     const result = await client.query({
         data: {
             query: discountMutation,
-            variables: {
-                "code": code,
-                "dollarAmount": dollarAmount,
-                "title": title,
-                "usageLimit": usageLimit
-            }
+            variables: variables
         }
     })
     //#endregion

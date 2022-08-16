@@ -33,17 +33,23 @@ shopifyReceiveWebhook.post("/", async (req, res) => {
     // x-shopify-order-id: 820982911946154508
 
     const webhookData = req.body;
+
+
     const shopDomain = req.header('x-shopify-shop-domain');
     console.log(shopDomain);
-
 
     switch(shopDomain) {
         case "athleisure-la.myshopify.com":
             var companyID = "zKL7SQ0jRP8351a0NnHM"
-            console.log("Matched the webhook header");
+            console.log("Matched to Athleisure company ID");
             break;
-        case "ABC123":
-            var companyID = "ABC123-noHeaderMatched"
+        case "hello-vip.myshopify.com":
+            var companyID = "QVmwSAakMGqIwi8Ewg7S"
+            console.log("Matched to hello-vip company ID");
+            break;
+        case "hello-vip-test-1.myshopify.com":
+            var companyID = "HcTcyHHdGwPWNPnKoVll"
+            console.log("Matched to hello-vip-test-1 company ID");
             break;
         default:
             var companyID = "No header matched! We have an issue"
