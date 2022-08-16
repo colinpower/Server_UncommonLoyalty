@@ -39,7 +39,6 @@ const discountOnCreate = functions.firestore
     const title = pointsSpent.toString() + " Points Redeemed for $" + dollarAmount.toString() + " Discount";
     const current_timestamp_milliseconds = new Date().getTime();
     const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
-    let newHistoryRef = admin.firestore().collection("history").doc();
 
 
     //Create the JSON to send to the GraphQL API
@@ -66,29 +65,33 @@ const discountOnCreate = functions.firestore
         code: code,
         discountID: discountID,
         graphqlID: gid,
-        historyID: newHistoryRef.id,
+        historyID: discountID,
         status: "ACTIVE",
         timestamp_Active: current_timestamp
     };
 
-    //create history entry for this order
+    //create history entry for this discount
     const historyDoc = {
         companyID: companyID,
         description: "fill in later",
         discountAmount: dollarAmount,
         discountCode: code,
+        discountID: discountID,
         email: email,
-        historyID: newHistoryRef.id,
+        historyID: discountID,
         orderID: "fill in later",
         pointsEarnedOrSpent: pointsSpent * -1,
         price: 0,
         reviewID: "",
+        status_Discount: "",
         timestamp: current_timestamp,
+        timestamp_DiscountUsed: 0,
+        associatedOrderID: "",
         type: "DISCOUNTCODE",
         userID: userID
     };
     
-    await admin.firestore().collection("history").add(historyDoc);
+    await admin.firestore().collection("history").doc(discountID).set(historyDoc);
     return admin.firestore().collection("discount").doc(discountID).update(discountUpdate);
 })
 
