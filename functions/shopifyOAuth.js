@@ -31,6 +31,7 @@ Shopify.Context.initialize({
 
 const app = express();
 
+
 //need to clear browser cache
 // need to explicitly set the IP address
 // seen here: https://stackoverflow.com/questions/40598428/ngrok-errors-502-bad-gateway
@@ -88,36 +89,36 @@ app.listen(port, () => {
 //uncomment this if you want to use a prod resource for allowing 
 //export default app;
 
-//#region actual long term access token for Athleisure
+//#region Athleisure access token (Aug 15)
 // Session {
 //     id: 'offline_athleisure-la.myshopify.com',
 //     shop: 'athleisure-la.myshopify.com',
-//     state: '535663884818981',
+//     state: '747143013473658',
 //     isOnline: false,
-//     accessToken: 'shpua_118573cea75a2dfd000e64d984b69f64',
+//     accessToken: 'shpua_2d7b02871ee6b3cf1094875025e269c4',
 //     scope: 'read_products,read_orders,write_discounts,write_price_rules'
 //   }
 //#endregion
 
-//#region long term access token for Hello VIP
+//#region Hello-Vip access token (Aug 15)
 // Session {
 //     id: 'offline_hello-vip.myshopify.com',
 //     shop: 'hello-vip.myshopify.com',
-//     state: '494792040377418',
+//     state: '118739299662392',
 //     isOnline: false,
-//     accessToken: 'shpua_8543a80d13af785857fd1d217aa59c79',
+//     accessToken: 'shpua_bbb2ae8010e6ac28e288722234983f03',
 //     scope: 'read_products,read_orders,write_discounts,write_price_rules'
 //   }
 //#endregion
 
-//#region Example of long-term access token
+//#region Hello-Vip-Test-1 access token (Aug 15)
 // Session {
-//     id: 'offline_hello-vip.myshopify.com',
-//     shop: 'hello-vip.myshopify.com',
-//     state: '043922437945507',
+//     id: 'offline_hello-vip-test-1.myshopify.com',
+//     shop: 'hello-vip-test-1.myshopify.com',
+//     state: '967928987420190',
 //     isOnline: false,
-//     accessToken: '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',
-//     scope: 'read_products,read_orders'
+//     accessToken: 'shpua_3e80c4fc97887f4d700426804466e152',
+//     scope: 'read_products,read_orders,write_discounts,write_price_rules'
 //   }
 //#endregion
 

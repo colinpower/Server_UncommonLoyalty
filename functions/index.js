@@ -25,7 +25,11 @@ import nameOfTest123 from "./test123.js";
 import shopifyWebhook from "./shopifyWebhook.js";
 import testReceiveOrder from "./testReceiveOrder.js";
 import receiveOrder from "./receiveOrder.js";
-import GQLresult from "./makeGQLonNewDiscount.js";
+//import GQLresult from "./makeGQLonNewDiscount.js";
+
+import discountOnCreate from "./discount-onCreate";
+
+import graphQLExpress from "./shopifyGraphQL.js";
 import createHistoryOnNewDiscountFunction from "./createHistoryOnNewDiscount.js";
 import createHistoryOnNewOrderFunction from "./createHistoryOnNewOrder.js";
 import createHistoryOnNewReferralFunction from "./createHistoryOnNewReferral.js";
@@ -48,7 +52,11 @@ export const receivingOrderTest = functions.https.onRequest(testReceiveOrder);
 
 export const receivingOrder = functions.https.onRequest(receiveOrder);
 
-export const graphQLAPI = GQLresult;
+export const makeDiscountRequestGQL = functions.https.onRequest(graphQLExpress);
+
+export const discount_onCreate = discountOnCreate;
+
+//export const graphQLAPI = GQLresult;
 
 export const createHistoryOnNewDiscount = createHistoryOnNewDiscountFunction;
 

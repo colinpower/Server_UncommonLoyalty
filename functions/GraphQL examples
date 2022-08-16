@@ -1,0 +1,54 @@
+//Code for creating a discount
+//GraphiQL editor
+
+
+
+// mutation {
+//   	discountCodeBasicCreate(basicCodeDiscount: {
+//     	title: "Uncommon: Redeemed Points For Discount",
+//     	usageLimit: 1,
+//       startsAt: "2016-01-01",
+//       endsAt: null,
+//     	appliesOncePerCustomer: true,
+//     	customerSelection: {
+//       	all: true
+//     	}
+//     	code: "ONETIME-12",
+//       minimumRequirement: {
+//         subtotal: {
+//           greaterThanOrEqualToSubtotal: "50.00"
+//         }
+//       }
+//     	customerGets: {
+//       	value: {
+//         	discountAmount:  {
+//           	amount: 10.00,
+//             appliesOnEachItem: false
+//         	}
+//       	}
+//       	items: {
+//           all: true
+//       	}
+//     	}}) {
+//     	userErrors { field message code }
+//     	codeDiscountNode {
+//       	id
+//         	codeDiscount {
+//         	... on DiscountCodeBasic {
+//           	title
+//           	summary
+//           	status
+//           	codes (first:10) {
+//             	edges {
+//               	node {
+//                 	code
+//               	}
+//             	}
+//           	}
+//         	}
+//       	}
+//     	}
+//   	}
+// }
+
+// https://athleisure-la.myshopify.com/admin/apps/5a3c93b0e9bc8d5abf63531fcd829b5d/?host=YXRobGVpc3VyZS1sYS5teXNob3BpZnkuY29tL2FkbWlu&shop=athleisure-la.myshopify.com
