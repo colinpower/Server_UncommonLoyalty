@@ -9,33 +9,43 @@ const reviewOnCreate = functions.firestore
     const companyID = "zKL7SQ0jRP8351a0NnHM";
     const email = snap.data().email;
     // const historyID = snap.data().historyID;
-    // const orderID = snap.data().orderID;
+    const orderID = snap.data().orderID;
     // const photoID = snap.data().photoID;
     // const timestamp = snap.data().timestamp;
     const userID = snap.data().userID;
     //const reviewID = context.params.reviewID
 
-    const current_timestamp = new Date().getTime();
-    // timestamp: Math.round(current_timestamp / 1000),
+    const current_timestamp_milliseconds = new Date().getTime();
+    const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
 
+    const historyRef = admin.firestore().collection("history").doc();
 
-    // create history entry for this order
-    const historyEntryForNewReview = {
-        companyID: companyID,
-        description: "fill in later",
-        discountAmount: "fill in later",
-        discountCode: "fill in later",
-        email: email,
-        orderID: "fill in later",
-        pointsEarnedOrSpent: 1,
-        price: 0,
-        reviewID: "",
-        timestamp: Math.round(current_timestamp / 1000),
-        type: "REVIEW",
-        userID: userID
+    //create history entry for this review
+    const historyDoc = {
+      companyID: companyID,
+      discountAmount: "",
+      discountCode: "",
+      discountCodeID: "",
+      domain: "",                 //need to get the correct domains
+      email: email,
+      historyID: historyRef.id,
+      itemIDs: [],
+      item_firstItemTitle: "",
+      orderID: orderID,
+      orderStatusURL: "",
+      pointsEarned: 100,
+      numberOfReviews: 0,
+      referralID: "",
+      referralCode: "",
+      referredOrderID: "",
+      shopifyOrderID: "",
+      timestamp: current_timestamp,
+      type: "REVIEW",               //REFERRAL, REVIEW, ORDER, DISCOUNTCODECREATED, DISCOUNTCODEUSED
+      totalPrice: 0,
+      userID: userID
     };
 
-    return admin.firestore().collection("history").add(historyEntryForNewReview)
+    return historyRef.set(historyEntryForNewReview);
 
 })
 

@@ -96,7 +96,7 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
     for (const orderItem of itemsInOrder) {
 
         console.log("iterating")
-        let newItemRef = admin.firestore().collection("item-" + companyID).doc();
+        let newItemRef = admin.firestore().collection("item").doc();
 
         itemIDs.push(newItemRef.id)
 
@@ -110,6 +110,7 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
             name: orderItem.name,
             title: orderItem.title,
             quantity: orderItem.quantity,
+            referred: false,
             reviewID: "",
             reviewRating: 0,
             shopifyItemID: orderItem.id,
@@ -178,6 +179,7 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
         //HAS DISCOUNT CODE
 
         const orderDiscountCode = webhookData.discount_codes[0].code;
+        const orderDiscountAmount = webhookData.total_discounts;        
 
         //Does the user have a loyalty account?
         if (!loyaltyprogramResult.empty) {          //it's a KNOWN USER + KNOWN DISCOUNT, KNOWN USER + UNKNOWN DISCOUNT
@@ -196,6 +198,9 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
 
                 // Step 1: modify the order object as needed, then add it
                 orderObject.pointsEarned = additionalPoints;  // set the amount of points earned
+                orderObject.discountAmount = orderDiscountAmount;  // set the amount of the discount
+                orderObject.discountCode = orderDiscountCode;  // set the amount of the discount
+                orderObject.discountCodeID = discountResult.docs[0].id;  // set the ID of the associated discount
                 await newOrderRef.set(orderObject);  // add the order
 
                 // Step 2: modify the history object as needed, then add it

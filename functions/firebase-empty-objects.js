@@ -34,8 +34,9 @@ var itemObject = {
     name: "",
     title: "",
     quantity: 0,
+    referred: false,
     reviewID: "",
-    reviewRating: 0, 
+    reviewRating: 0,
     shopifyItemID: 0,
     status: "",                         //PAID, REFUNDED, PARTIALLY REFUNDED
     timestamp: 0,
@@ -58,9 +59,9 @@ var historyObject = {
     orderID: "",
     orderStatusURL: "",
     pointsEarned: 0,
-    numberOfReviews: 0,
+    numberOfReviews: 0,                //NEED TO CREATE AN ENTRY FOR REVIEW ID
     referralID: "",
-    referralCode: "",
+    referralCode: "",   
     referredOrderID: "",
     shopifyOrderID: "",
     type: "",                         //REFERRAL, REVIEW, ORDER, DISCOUNTCODECREATED, DISCOUNTCODEUSED

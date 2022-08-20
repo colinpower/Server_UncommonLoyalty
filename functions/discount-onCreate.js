@@ -73,23 +73,29 @@ const discountOnCreate = functions.firestore
     //create history entry for this discount
     const historyDoc = {
         companyID: companyID,
-        description: "fill in later",
-        discountAmount: dollarAmount,
+        discountAmount: dollarAmount.toString(),
         discountCode: code,
-        discountID: discountID,
+        discountCodeID: discountID,
+        domain: "",                 //need to get the correct domains
         email: email,
         historyID: discountID,
+        itemIDs: [],
+        item_firstItemTitle: "",
         orderID: "fill in later",
-        pointsEarnedOrSpent: pointsSpent * -1,
-        price: 0,
-        reviewID: "",
-        status_Discount: "",
+        orderStatusURL: "",
+        pointsEarned: pointsSpent * -1,
+        numberOfReviews: 0,
+        referralID: "",
+        referralCode: "",
+        referredOrderID: "",
+        shopifyOrderID: 0,
+        type: "DISCOUNTCODECREATED",               //REFERRAL, REVIEW, ORDER, DISCOUNTCODECREATED, DISCOUNTCODEUSED
         timestamp: current_timestamp,
-        timestamp_DiscountUsed: 0,
-        associatedOrderID: "",
-        type: "DISCOUNTCODE",
+        totalPrice: 0,
         userID: userID
     };
+
+    
     
     await admin.firestore().collection("history").doc(discountID).set(historyDoc);
     return admin.firestore().collection("discount").doc(discountID).update(discountUpdate);
