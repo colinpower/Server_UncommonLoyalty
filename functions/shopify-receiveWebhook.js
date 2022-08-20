@@ -33,9 +33,11 @@ shopifyReceiveWebhook.post("/", async (req, res) => {
     // x-shopify-order-id: 820982911946154508
 
     //Get your variables from the request
-    const shopDomain = req.header('x-shopify-shop-domain');
-    const webhookData = req.body;
-    const email = webhookData.email;
+    const shopDomain = req.header('x-shopify-shop-domain');     //this tells you which shop it's from
+    //const webhookType = req.header('x-shopify-topic');     //this tells you which shop it's from
+    //const shopifyOrderID = req.header('x-shopify-order-id');     //the order ID, if it exists... if webhookType=="refund", you need to get the orderID from the body
+    const webhookData = req.body;        //this has the payload
+    const email = webhookData.email;     //
     const current_timestamp_milliseconds = new Date().getTime();
     const current_timestamp = current_timestamp_milliseconds / 1000;
     var referralBonusPoints = 0;
@@ -71,6 +73,12 @@ shopifyReceiveWebhook.post("/", async (req, res) => {
 
     var totalPointsEarnedOnThisOrder = 0;
     var userID = "";
+
+    //Create an empty Order object
+    //Create an empty Referral object
+    //Create an empty History object
+
+
 
     //figure out if there's a discount or referral code
     if (webhookData.discount_codes.length !== 0) {                 //if there's a discount code used..
