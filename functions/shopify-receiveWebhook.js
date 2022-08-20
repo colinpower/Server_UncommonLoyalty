@@ -74,6 +74,8 @@ shopifyReceiveWebhook.post("/", async (req, res) => {
     var totalPointsEarnedOnThisOrder = 0;
     var userID = "";
 
+    var historyDoc = {};
+
     //Create an empty Order object
     //Create an empty Referral object
     //Create an empty History object
@@ -233,7 +235,7 @@ shopifyReceiveWebhook.post("/", async (req, res) => {
     }
 
     //create the history object
-    const historyDoc = {
+    historyDoc = {
         actualNewCustomerEmail: "",
         associatedOrderID: "",
         companyID: companyID,

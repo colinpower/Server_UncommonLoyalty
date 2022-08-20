@@ -10,11 +10,13 @@ import functions from "firebase-functions";
 // ---- Shopify Import ----
 //import app from "./shopify-auth.js";
 import shopifyReceiveWebhook from "./shopify-receiveWebhook.js";
+import shopifyReceiveWebhook2 from "./shopify-receiveWebhook2.js";
 import shopifyCreateDiscount from "./shopify-createDiscount.js";
 
 // ---- Shopify Export ----
 //export const shopifyAuth = functions.https.onRequest(app);
 export const shopify_receiveWebhook = functions.https.onRequest(shopifyReceiveWebhook);
+export const shopify_receiveWebhook2 = functions.https.onRequest(shopifyReceiveWebhook2);
 export const shopify_createDiscount = functions.https.onRequest(shopifyCreateDiscount);
 
 
