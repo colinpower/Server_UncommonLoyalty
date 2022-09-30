@@ -23,6 +23,7 @@ export const shopify_createDiscount = functions.https.onRequest(shopifyCreateDis
 // ---- Firestore Function Import ----
 import authOnCreate from "./auth-onCreate.js";
 import discountOnCreate from "./discount-onCreate.js";
+import itemOnCreate from "./item-onCreate.js";
 import referralOnCreate from "./referral-onCreate.js";
 import reviewOnCreate from "./review-onCreate.js";
 //import reviewOnCreate from "./createHistoryOnNewOrder.js";
@@ -30,6 +31,7 @@ import reviewOnCreate from "./review-onCreate.js";
 // ---- Firestore Function Export ----
 export const auth_onCreate = authOnCreate;
 export const discount_onCreate = discountOnCreate;
+export const item_onCreate = itemOnCreate;
 export const referral_onCreate = referralOnCreate;
 export const review_onCreate = reviewOnCreate;
 

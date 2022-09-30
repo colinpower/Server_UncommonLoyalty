@@ -32,9 +32,10 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
     //const shopifyOrderID = req.header('x-shopify-order-id');     //the order ID, if it exists... if webhookType=="refund", you need to get the orderID from the body
     const webhookData = req.body;        //this has the payload
     const email = webhookData.email;     //
+    const phone = webhookData.phone;     //
     const current_timestamp_milliseconds = new Date().getTime();
     const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
-    const numberOfOrderDiscountCodes = webhookData.discount_codes.length;
+    const numberOfOrderDiscountCodes = webhookData.discount_codes.length; 
         
     
     //#endregion
@@ -43,17 +44,29 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
     switch(shopDomain) {
         case "athleisure-la.myshopify.com":
             var companyID = "zKL7SQ0jRP8351a0NnHM"
+            var companyName = "Athleisure LA"
             var pointsPerDollar = 10
+            var pointsPerReview = 250
+            var pointsPerReferral = 10000
+            var returnPolicyInDays = 45
             console.log("Matched to Athleisure company ID");
             break;
         case "hello-vip.myshopify.com":
             var companyID = "QVmwSAakMGqIwi8Ewg7S"
+            var companyName = "Hello VIP"
             var pointsPerDollar = 10
+            var pointsPerReview = 250
+            var pointsPerReferral = 10000
+            var returnPolicyInDays = 30
             console.log("Matched to hello-vip company ID");
             break;
         case "hello-vip-test-1.myshopify.com":
             var companyID = "HcTcyHHdGwPWNPnKoVll"
+            var companyName = "Hello VIP Test 1"
             var pointsPerDollar = 10
+            var pointsPerReview = 250
+            var pointsPerReferral = 10000
+            var returnPolicyInDays = 21
             console.log("Matched to hello-vip-test-1 company ID");
             break;
         default:
@@ -91,36 +104,66 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
             
 
     console.log("reaching this point");
-    console.log(webhookData.line_items[0]);
-    // Iterate over each item in the order, create a new entry in Items collection
+    //console.log(webhookData.line_items[0]);
+
+
+    // Iterate over each item in the order, create a new entry in Items collection for each item
     for (const orderItem of itemsInOrder) {
 
-        console.log("iterating")
+        //Grab the product ID
+        const productID = orderItem.product_id;
+        //console.log("the product ID is " + productID)
+
+        //Create a new reference for a new item
         let newItemRef = admin.firestore().collection("item").doc();
 
         itemIDs.push(newItemRef.id)
 
         var itemObject = {
-            companyID: companyID,
-            domain: shopDomain,
-            email: email,
-            itemID: newItemRef.id,
-            orderID: newOrderRef.id,
-            price: orderItem.price,
-            name: orderItem.name,
-            title: orderItem.title,
-            quantity: orderItem.quantity,
-            referred: false,
-            reviewID: "",
-            reviewRating: 0,
-            shopifyItemID: orderItem.id,
-            status: "PAID",                         //PAID, REFUNDED, PARTIALLY REFUNDED
-            timestamp: current_timestamp,
-            userID: userID
+            
+            ids: {
+                companyID: companyID,
+                itemID: newItemRef.id,
+                orderID: newOrderRef.id,
+                referralIDs: [""],
+                reviewID: "",
+                shopifyItemID: orderItem.id,
+                shopifyProductID: productID,
+                userID: userID
+            },
+            referrals: {
+                count: 0,
+                rewardType: "POINTS",
+                rewardAmount: pointsPerReferral
+            },
+            review: {
+                rating: 0,
+                rewardType: "POINTS",
+                rewardAmount: pointsPerReview
+            },
+            order: {
+                companyName: companyName,
+                domain: shopDomain,
+                email: email,
+                handle: "",
+                imageURL: "",
+                name: orderItem.name,
+                orderNumber: webhookData.order_number,
+                orderStatusURL: webhookData.order_status_url,
+                phone: "",
+                price: orderItem.price,
+                quantity: orderItem.quantity,
+                returnPolicyInDays: returnPolicyInDays,
+                status: "PAID",                         //PAID, REFUNDED, PARTIALLY REFUNDED
+                timestamp: current_timestamp,
+                title: orderItem.title,
+            }
         };
 
+        //Post the item to firestore
         await newItemRef.set(itemObject);
     };
+
 
     // Create the unfinished Order object
     var orderObject = {
