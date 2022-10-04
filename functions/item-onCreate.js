@@ -1,22 +1,3 @@
-// const productPath = "companies/" + companyID + "/products"
-
-//         console.log("the product ID is " + productID)
-//         console.log("the product path is " + productPath)
-        
-//         //Given the productID, what's the handle and image URL?
-
-//         const productIDInfo = await admin.firestore().collection("companies/" + companyID + "/products").doc(productID).get();
-
-//         // Iterate through the documents fetched
-//         querySnapshot.forEach((productIDInfo) => {
-//             console.log(
-//                 productIDInfo.id,
-//                 productIDInfo.data(),
-//                 "reached this point and the forEach is working?"
-//             )
-//         })
-
-
 import admin from "firebase-admin";
 import functions from "firebase-functions";
 
@@ -25,42 +6,42 @@ const itemOnCreate = functions.firestore
   .document('item/{itemID}')
   .onCreate(async (snap, context) => {
 
+    //get the item object
+    var itemObject = snap.data();
+
     //grab necessary variables from the item
     const itemID = context.params.itemID
     const companyID = snap.data().ids.companyID;
-    const shopify_productID = snap.data().ids.shopify_productID;
+    const productID = snap.data().ids.shopifyProductID.toString();
+
+    //Find the relevant handle for this productID
+    console.log(productID)
 
 
-    return;
-    //create reference to product info
-    //var productIDRef = 'companies/' + companyID + '/products/'
+    const productData = await admin.firestore().collection("companies").doc(companyID).collection("products")
+    .where("productID", "==", productID)
+    .get()
 
-    //const productRef = admin.firestore().collection('companies').doc(companyID).collection('products').doc(shopify_productID);
+    //If you found a discount code, mark it as used and add OrderID
+    if (!productData.empty) {
 
-    //get the product info, write it back to the item
+      console.log(productData.docs[0].data())
+      console.log(productData.docs[0].data().handle)
 
-    // const doc = await productRef.get();
 
-    // if (!doc.exists) {
+      itemObject.order.handle = productData.docs[0].data().handle;
+      itemObject.order.imageURL = productData.docs[0].data().imageURL;
 
-    //     console.log("no document for the item-onCreate function");
+      return admin.firestore().collection("item").doc(itemID).update(itemObject);
+        
+    } else {
+      
+      //we have an error... do something here?
+      console.log("didn't find any productID for this company")
 
-    //     return;
+      return;
 
-    // } else {
-
-    //     console.log('the handle in item-onCreate is ' + doc.data().handle);
-
-    //     var currentItem = snap.data();
-
-    //     currentItem.order.handle = doc.data().handle;
-
-    //     currentItem.order.imageURL = doc.data().imageURL;
-
-    //     return admin.firestore().collection("item").doc(itemID).update(currentItem)
-
-    // }
-
+    }
 })
 
 export default itemOnCreate;

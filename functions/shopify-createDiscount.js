@@ -34,71 +34,17 @@ shopifyCreateDiscount.use(bodyParser.urlencoded({
 }));
   
 
-// shopifyCreateDiscount.get("/", async (req, res) => {
-
-//     //https://us-central1-uncommon-loyalty.cloudfunctions.net/makeDiscountRequestGQL",
-
-//     const bodyOfPOST = {
-//         code: "B4",
-//         company: "Athleisure",
-//         dollarAmount: 10,
-//         title: "fake title",
-//         usageLimit: 1
-//     };
-
-
-//     const response = await fetch("https://8ed3-205-178-78-227.ngrok.io", {
-//         method: "POST", 
-//         body: JSON.stringify(bodyOfPOST),
-//         headers: { "Content-Type": "application/json" }
-//     });
-
-//     //console.log(response.json());
-//     //const response3 = response2.clone();
-//     const data = await response.json();
-
-//     console.log(typeof data);
-//     console.log(data.graphqlID);
-//     // const data2 = await JSON.parse(data);
-
-//     // console.log(data2);
-//     // const data3 = data2.graphqlID;
-
-//     //console.log(gqlLink);
-
-//     //console.log(responseJSON1);
-//     //console.log(responseJSON1.body);
-//     //const variable1 = JSON.parse(responseJSON1)
-//     //console.log("ABOUT TO RESPOND TO POSTMAN");
-//     //console.log(responseJSON1);
-
-//     //console.log("REPSONSE IS" + JSON.parse(response.json));
-
-//     res.sendStatus(200)
-// })
-
-
 
 shopifyCreateDiscount.post("/", async (req, res) => {
 
     //Get variables from the body of the request
     var code = req.body.code;
-    var dollarAmount = req.body.dollarAmount;
+    var rewardAmount = req.body.rewardAmount;
     var domain = req.body.domain;
-    var graphqlID = req.body.graphqlID;
     var title = req.body.title;
     var usageLimit = req.body.usageLimit;
     
     var typeOfDiscount = "AMOUNT_NOMINIMUM_1USE_1CUSTOMER_NODEADLINE";
-
-    
-    
-    
-
-    // var usageLimit = 1;
-    // var dollarAmount = 10.00;
-    // var code = code;
-    // var title = "FIREBASETITLE123";  //"Uncommon: Redeemed Points for $" + String(dollarAmount) + " Discount"
 
 
     //#region Step 2: Use company name to get correct access token from process.env
@@ -123,7 +69,7 @@ shopifyCreateDiscount.post("/", async (req, res) => {
         case "AMOUNT_NOMINIMUM_1USE_1CUSTOMER_NODEADLINE":
             var discountMutation = 
                 //#region One Fixed Discount No Expiration
-                `mutation OneFixedDiscountNoExpiration($usageLimit: Int, $dollarAmount: Decimal, $code:String, $title:String) {
+                `mutation OneFixedDiscountNoExpiration($usageLimit: Int, $rewardAmount: Decimal, $code:String, $title:String) {
                     discountCodeBasicCreate(basicCodeDiscount: {
                     title: $title,
                     usageLimit: $usageLimit,
@@ -135,7 +81,7 @@ shopifyCreateDiscount.post("/", async (req, res) => {
                     customerGets: {
                         value: {
                         discountAmount:  {
-                            amount: $dollarAmount,
+                            amount: $rewardAmount,
                         appliesOnEachItem: false
                         }
                         }
@@ -168,7 +114,7 @@ shopifyCreateDiscount.post("/", async (req, res) => {
 
             var variables = {
                 "code": code,
-                "dollarAmount": dollarAmount,
+                "rewardAmount": rewardAmount,
                 "title": title,
                 "usageLimit": usageLimit
             }
@@ -179,22 +125,22 @@ shopifyCreateDiscount.post("/", async (req, res) => {
             var discountMutation = "NEED TO WRITE THIS LATER"
             var variables = {
                 "code": code,
-                "dollarAmount": dollarAmount,
+                "rewardAmount": rewardAmount,
                 "title": title,
                 "usageLimit": usageLimit
             }
             break;
 
-        case "DELETE":
-            var discountMutation = 
-                `mutation deleteDiscount($id: ID!) {
-                    discountCodeDelete (id: $id) {
-                      deletedCodeDiscountId
-                    }
-                  }`
-            var variables = {
-                "id": graphqlID,
-            }
+        // case "DELETE":
+        //     var discountMutation = 
+        //         `mutation deleteDiscount($id: ID!) {
+        //             discountCodeDelete (id: $id) {
+        //               deletedCodeDiscountId
+        //             }
+        //           }`
+        //     var variables = {
+        //         "id": graphqlID,
+        //     }
         default:
             var discountMutation = "NEED TO WRITE THIS LATER"
     }
@@ -205,6 +151,9 @@ shopifyCreateDiscount.post("/", async (req, res) => {
     //Auth with Shopify
     const client = new Shopify.Clients.Graphql(domain, accessToken);
       
+    console.log(discountMutation);
+    console.log(variables);
+
     //Making request to endpoint
     const result = await client.query({
         data: {
@@ -222,6 +171,7 @@ shopifyCreateDiscount.post("/", async (req, res) => {
         //if so, send 409: request could not be completed due to conflict with current state (i.e. duplicated existing code)
         console.log("error, duplicate code");
         res.sendStatus(409);
+        
     } else if (result.body.data.discountCodeBasicCreate.userErrors.length == 0) {
         //no errors
         console.log("No errors");

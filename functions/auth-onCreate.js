@@ -16,7 +16,7 @@ const authOnCreate = functions.auth
         const current_timestamp_milliseconds = new Date().getTime();
         const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
 
-        const loyaltyProgramID = user.uid + "zKL7SQ0jRP8351a0NnHM";
+        const loyaltyProgramID = user.uid + "-zKL7SQ0jRP8351a0NnHM";
 
         //create their first loyalty program
         const loyaltyprogramDoc = {

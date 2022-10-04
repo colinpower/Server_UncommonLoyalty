@@ -6,47 +6,34 @@ const reviewOnCreate = functions.firestore
   .onCreate(async (snap, context) => {
 
     //grab necessary variables from the review
-    const companyID = "zKL7SQ0jRP8351a0NnHM";
-    const email = snap.data().email;
-    // const historyID = snap.data().historyID;
-    const orderID = snap.data().orderID;
-    // const photoID = snap.data().photoID;
-    // const timestamp = snap.data().timestamp;
-    const userID = snap.data().userID;
-    //const reviewID = context.params.reviewID
+    const companyID = snap.data().ids.companyID;
+    const userID = snap.data().ids.userID;
+    const timestamp = snap.data().card.timestamp;
+    const pointsEarned = snap.data().reward.rewardEarned;
+    
+    //Step 1: Check to see that you have found the right loyalty program
+    const loyaltyResult = await admin.firestore().collection("loyaltyprograms")
+    .where("userID", "==", userID)
+    .where("companyID", "==", companyID)
+    .get()
 
-    const current_timestamp_milliseconds = new Date().getTime();
-    const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
+    //If you didn't find a loyalty program, ERROR! This is really bad
+    if (loyaltyResult.empty) {
+      
+      //ERROR!!!! NEED TO LOG THIS AND WATCH OUT
+    
+    } else {
+      
+      var updatedLoyaltyObject = loyaltyResult.docs[0].data();
 
-    const historyRef = admin.firestore().collection("history").doc();
+      updatedLoyaltyObject.currentPointsBalance = updatedLoyaltyObject.currentPointsBalance + pointsEarned
+      updatedLoyaltyObject.numberOfReviews = updatedLoyaltyObject.numberOfReviews + 1
 
-    //create history entry for this review
-    const historyDoc = {
-      companyID: companyID,
-      discountAmount: "",
-      discountCode: "",
-      discountCodeID: "",
-      domain: "",                 //need to get the correct domains
-      email: email,
-      historyID: historyRef.id,
-      itemIDs: [],
-      item_firstItemTitle: "",
-      orderID: orderID,
-      orderStatusURL: "",
-      pointsEarned: 100,
-      numberOfReviews: 0,
-      referralID: "",
-      referralCode: "",
-      referredOrderID: "",
-      shopifyOrderID: "",
-      timestamp: current_timestamp,
-      type: "REVIEW",               //REFERRAL, REVIEW, ORDER, DISCOUNTCODECREATED, DISCOUNTCODEUSED
-      totalPrice: 0,
-      userID: userID
-    };
+      var loyaltyProgramID = userID + "-" + companyID
 
-    return historyRef.set(historyEntryForNewReview);
+      return admin.firestore().collection("loyaltyprograms").doc(loyaltyProgramID).update(updatedLoyaltyObject);
 
-})
+    }
+});
 
 export default reviewOnCreate;

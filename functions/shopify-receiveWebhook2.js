@@ -35,8 +35,13 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
     const phone = webhookData.phone;     //
     const current_timestamp_milliseconds = new Date().getTime();
     const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
-    const numberOfOrderDiscountCodes = webhookData.discount_codes.length; 
-        
+    const numberOfOrderDiscountCodes = webhookData.discount_codes.length;
+    
+    var itemIDs = []                                                // Create the empty array of itemIDs
+    var quantityPerItemID = []
+
+
+
     
     //#endregion
 
@@ -73,17 +78,12 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
             var companyID = "No header matched! We have an issue"
             var pointsPerDollar = 10
     }
-    // #endregion
 
-    //#region Step 3: Determine if you have a loyalty program
+    //Step 3: Determine if you have a loyalty program
     const loyaltyprogramResult = await admin.firestore().collection("loyaltyprograms")
         .where("domain", "==", shopDomain)
         .where("email", "==", email)
         .get()
-
-    //#endregion
-    
-    //#region Step 4: Create the Order, History and Items objects, and add the items
     
     // Check if UserID exists
     if (!loyaltyprogramResult.empty) {
@@ -92,22 +92,18 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
         var userID = "";
     }
 
+    console.log("reaching this point");
+
+
+
+
     // Create the reference to the Order and the History entries
     let newOrderRef = admin.firestore().collection("order").doc();
-    let newHistoryRef = admin.firestore().collection("history").doc();
 
-    // Create the empty array of itemIDs
-    var itemIDs = []
-
-    // Get the number of items in the order
-    const itemsInOrder = webhookData.line_items;
-            
-
-    console.log("reaching this point");
-    //console.log(webhookData.line_items[0]);
-
-
+    
     // Iterate over each item in the order, create a new entry in Items collection for each item
+    const itemsInOrder = webhookData.line_items;
+    
     for (const orderItem of itemsInOrder) {
 
         //Grab the product ID
@@ -117,7 +113,10 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
         //Create a new reference for a new item
         let newItemRef = admin.firestore().collection("item").doc();
 
+        //Add to the [ItemIDs] array for when you're creating the Order object
         itemIDs.push(newItemRef.id)
+
+        quantityPerItemID.push(orderItem.quantity)
 
         var itemObject = {
             
@@ -167,230 +166,47 @@ shopifyReceiveWebhook2.post("/", async (req, res) => {
 
     // Create the unfinished Order object
     var orderObject = {
-        companyID: companyID,
-        discountAmount: "",
-        discountCode: "",
-        discountCodeID: "",
-        domain: shopDomain,
-        email: email,
-        historyID: newHistoryRef.id,
-        itemIDs: itemIDs,
-        item_firstItemTitle: webhookData.line_items[0].title,
-        orderID: newOrderRef.id,
-        orderStatusURL: webhookData.order_status_url,
-        pointsEarned: 0,
-        numberOfReviews: 0,
-        referralID: "",
-        referralCode: "",
-        shopifyOrderID: webhookData.id,
-        status: "PAID",                         //PAID, REFUNDED, PARTIALLY REFUNDED
-        timestamp: current_timestamp,
-        totalPrice: Number(webhookData.total_line_items_price),
-        userID: userID
+
+        ids: {
+            companyID: companyID,
+            discountCodeID: "",
+            itemIDs: itemIDs,
+            quantityPerItemID: quantityPerItemID,
+            orderID: newOrderRef.id,
+            referralID: "",
+            shopifyOrderID: webhookData.id,
+            userID: userID
+        },
+        order: {
+            companyName: companyName,
+            domain: shopDomain,
+            email: email,
+            firstItemTitle: webhookData.line_items[0].title,
+            orderNumber: webhookData.order_number,
+            orderStatusURL: webhookData.order_status_url,
+            phone: "",              //need to check if phone is null, and what its usual default value is
+            price: webhookData.total_line_items_price,
+            status: "PAID",
+            timestampCreated: current_timestamp,
+            timestampUpdated: -1,
+        },
+        discountCode: {
+            type: "",
+            amount: "",
+            code: ""
+        }       
     };
 
-    // Create the unfinished History object
-    var historyObject = {
-        companyID: companyID,
-        discountAmount: "",
-        discountCode: "",
-        discountCodeID: "",
-        domain: shopDomain,
-        email: email,
-        historyID: newHistoryRef.id,
-        itemIDs: itemIDs,
-        item_firstItemTitle: webhookData.line_items[0].title,
-        orderID: newOrderRef.id,
-        orderStatusURL: webhookData.order_status_url,
-        pointsEarned: 0,
-        numberOfReviews: 0,
-        referralID: "",
-        referralCode: "",
-        referredOrderID: "",
-        shopifyOrderID: webhookData.id,
-        type: "ORDER",                         //PAID, REFUNDED, PARTIALLY REFUNDED
-        timestamp: current_timestamp,
-        totalPrice: Number(webhookData.total_line_items_price),
-        userID: userID
-    };
-
-    //#endregion
-
-    //Step 5: determine the scenario
-    
-    if (numberOfOrderDiscountCodes > 0) {           //it's a KNOWN USER + KNOWN DISCOUNT, KNOWN USER + UNKNOWN DISCOUNT, UNKNOWN USER + KNOWN REFERRAL, UNKNOWN USER + UNKNOWN DISCOUNT
-        //HAS DISCOUNT CODE
-
-        const orderDiscountCode = webhookData.discount_codes[0].code;
-        const orderDiscountAmount = webhookData.total_discounts;        
-
-        //Does the user have a loyalty account?
-        if (!loyaltyprogramResult.empty) {          //it's a KNOWN USER + KNOWN DISCOUNT, KNOWN USER + UNKNOWN DISCOUNT
-
-            //Is the discount one of the ones created in the app?
-            const discountResult = await admin.firestore().collection("discount")
-                .where("domain", "==", shopDomain)
-                .where("code", "==", orderDiscountCode)
-                .get()
-
-            if (!discountResult.empty) {            //it's a KNOWN USER + KNOWN DISCOUNT
-                
-                var additionalPoints = Number(webhookData.total_line_items_price) * pointsPerDollar;
-                var currentPoints = loyaltyprogramResult.docs[0].data().currentPointsBalance;
-                var lifetimePoints = loyaltyprogramResult.docs[0].data().lifetimePoints;
-
-                // Step 1: modify the order object as needed, then add it
-                orderObject.pointsEarned = additionalPoints;  // set the amount of points earned
-                orderObject.discountAmount = orderDiscountAmount;  // set the amount of the discount
-                orderObject.discountCode = orderDiscountCode;  // set the amount of the discount
-                orderObject.discountCodeID = discountResult.docs[0].id;  // set the ID of the associated discount
-                await newOrderRef.set(orderObject);  // add the order
-
-                // Step 2: modify the history object as needed, then add it
-                historyObject.pointsEarned = additionalPoints;  // set the amount of points earned
-                await newHistoryRef.set(historyObject);  // add history (order)
-
-                // Step 3: update loyaltyprogram
-                var loyaltyprogramUpdate = {
-                    currentPointsBalance: currentPoints + additionalPoints,
-                    lifetimePoints: lifetimePoints + additionalPoints
-                };
-                await admin.firestore().collection("loyaltyprograms").doc(loyaltyprogramResult.docs[0].id).update(loyaltyprogramUpdate);
-
-                // Step 4: update discount (used)
-                var discountUpdate = {
-                    status: "USED",
-                    timestamp_Used: current_timestamp,
-                    usedOnOrderID: newOrderRef.id
-                };
-                console.log("the discount ID is...")
-                console.log(discountResult.docs[0].id)
-                await admin.firestore().collection("discount").doc(discountResult.docs[0].id).update(discountUpdate);
-
-                // Step 5: End and send 200 status
-                console.log("known user, known discount code");
-                res.sendStatus(200);
-            
-            } else {                                //it's a KNOWN USER + UNKNOWN DISCOUNT
-
-                console.log("known user, unknown discount code");
-                res.sendStatus(200);
-
-                // add order
-                // add history (order)
-                // add history (discount)
-                // update loyaltyprogram (points)
-            }
-
-        } else {                                    //it's an UNKNOWN USER + KNOWN REFERRAL, UNKNOWN USER + UNKNOWN DISCOUNT
-
-            //Is the discount a referral code?
-            const referralResult = await admin.firestore().collection("referral")
-                .where("domain", "==", shopDomain)
-                .where("referralCode", "==", orderDiscountCode)
-                .get()
-
-            if (!referralResult.empty) {            //it's an UNKNOWN USER + KNOWN REFERRAL
-
-                console.log("unknown user, known referral code");
-                res.sendStatus(200);
-
-            } else {                                //it's an UNKNOWN USER + UNKNOWN DISCOUNT
-
-                console.log("unknown user, unknown discount code");
-                res.sendStatus(200);
-
-            }
-        }
-
-    } else {                                        //it's a KNOWN USER or an UNKNOWN USER
-        //DOES NOT HAVE DISCOUNT CODE
-        
-        //Does the user have a loyalty account?
-        if (!loyaltyprogramResult.empty) {          //it's a KNOWN USER
-
-            var additionalPoints = Number(webhookData.total_line_items_price) * pointsPerDollar;
-            var currentPoints = loyaltyprogramResult.docs[0].data().currentPointsBalance;
-            var lifetimePoints = loyaltyprogramResult.docs[0].data().lifetimePoints;
-
-            // Step 1: modify the order object as needed, then add it
-            orderObject.pointsEarned = additionalPoints;  // set the amount of points earned
-            await newOrderRef.set(orderObject);  // add the order
-
-            // Step 2: modify the history object as needed, then add it
-            historyObject.pointsEarned = additionalPoints;  // set the amount of points earned
-            await newHistoryRef.set(historyObject);  // add history (order)
-
-            // Step 3: update loyaltyprogram
-            var loyaltyprogramUpdate = {
-                currentPointsBalance: currentPoints + additionalPoints,
-                lifetimePoints: lifetimePoints + additionalPoints
-            };
-            await admin.firestore().collection("loyaltyprograms").doc(loyaltyprogramResult.docs[0].id).update(loyaltyprogramUpdate);
-
-            // Step 4: End and send 200 status
-            console.log("known user, no discount code");
-            res.sendStatus(200);
-
-        } else {                                    //it's a UNKNOWN USER
-            console.log("it's an unknown user");
-            res.sendStatus(200);
-        }
+    if (numberOfOrderDiscountCodes > 0) {
+        orderObject.discountCode.type = webhookData.discount_codes[0].type
+        orderObject.discountCode.amount = webhookData.discount_codes[0].amount
+        orderObject.discountCode.code = webhookData.discount_codes[0].code
     }
 
+    await newOrderRef.set(orderObject);  // add the order
 
-    
-    //const currentPointsAfterThisOrder = totalPointsEarnedOnThisOrder + Number(webhookData.total_line_items_price) * 100 + loyaltyprogramResult.docs[0].data().currentPointsBalance
-
-
-    
-    
-
-    //Create an empty History object
-    //create the history object
-    // var historyDoc = {
-    //     actualNewCustomerEmail: "",
-    //     associatedOrderID: "",
-    //     companyID: companyID,
-    //     description: "",
-    //     discountCodeAmount: "",
-    //     discountCode: "",
-    //     discountID: "",
-    //     referralID: "",
-    //     historyID: newHistoryRef.id,
-    //     email: email,
-    //     referralBonusPoints: 0,
-    //     pointsEarnedOrSpent: 0,
-    //     associatedOrderPrice: Number(webhookData.total_line_items_price),
-    //     reviewID: "",
-    //     status: "",
-    //     status_Discount: "",
-    //     status_Referral: "USED",
-    //     totalSpent: 0,
-    //     timestamp: current_timestamp,
-    //     timestamp_Created: 0,
-    //     timestamp_Active: 0,
-    //     timestamp_Used: 0,
-    //     type: "ORDER",
-    //     userID: userID
-    // };
-
-
-
-    //const loyaltyprogramRef = loyaltyprogramResult.id;
-    
-    //const currentPointsAfterThisOrder = totalPointsEarnedOnThisOrder + Number(webhookData.total_line_items_price) * 100 + loyaltyprogramResult.docs[0].data().currentPointsBalance
-    //Create an empty Referral object
-    //Create an empty History object
-
-    //create the loyaltyprogramUpdate object
-    // const loyaltyProgramUpdate = {
-    //     numberOfReferrals: 0,
-    //     currentPointsBalance: currentPointsAfterThisOrder,
-    //     lifetimePoints: 0,
-    //     status: "TEST"
-    // };
-
+    console.log("known user, no discount code");
+    res.sendStatus(200);
     
 });
 
@@ -401,3 +217,128 @@ export default shopifyReceiveWebhook2;
 // shopifyReceiveWebhook.listen(port, () => {
 //     console.log(`Server running at ${port}`);
 // });
+
+
+
+
+// //Step 5: determine the scenario
+    
+// if (numberOfOrderDiscountCodes > 0) {           //it's a KNOWN USER + KNOWN DISCOUNT, KNOWN USER + UNKNOWN DISCOUNT, UNKNOWN USER + KNOWN REFERRAL, UNKNOWN USER + UNKNOWN DISCOUNT
+//     //HAS DISCOUNT CODE
+
+//     const orderDiscountCode = webhookData.discount_codes[0].code;
+//     const orderDiscountAmount = webhookData.total_discounts;        
+
+//     //Does the user have a loyalty account?
+//     if (!loyaltyprogramResult.empty) {          //it's a KNOWN USER + KNOWN DISCOUNT, KNOWN USER + UNKNOWN DISCOUNT
+
+//         //Is the discount one of the ones created in the app?
+//         const discountResult = await admin.firestore().collection("discount")
+//             .where("domain", "==", shopDomain)
+//             .where("code", "==", orderDiscountCode)
+//             .get()
+
+//         if (!discountResult.empty) {            //it's a KNOWN USER + KNOWN DISCOUNT
+            
+//             var additionalPoints = Number(webhookData.total_line_items_price) * pointsPerDollar;
+//             var currentPoints = loyaltyprogramResult.docs[0].data().currentPointsBalance;
+//             var lifetimePoints = loyaltyprogramResult.docs[0].data().lifetimePoints;
+
+//             // Step 1: modify the order object as needed, then add it
+//             orderObject.pointsEarned = additionalPoints;  // set the amount of points earned
+//             orderObject.discountAmount = orderDiscountAmount;  // set the amount of the discount
+//             orderObject.discountCode = orderDiscountCode;  // set the amount of the discount
+//             orderObject.discountCodeID = discountResult.docs[0].id;  // set the ID of the associated discount
+//             await newOrderRef.set(orderObject);  // add the order
+
+//             // Step 2: modify the history object as needed, then add it
+//             historyObject.pointsEarned = additionalPoints;  // set the amount of points earned
+//             await newHistoryRef.set(historyObject);  // add history (order)
+
+//             // Step 3: update loyaltyprogram
+//             var loyaltyprogramUpdate = {
+//                 currentPointsBalance: currentPoints + additionalPoints,
+//                 lifetimePoints: lifetimePoints + additionalPoints
+//             };
+//             await admin.firestore().collection("loyaltyprograms").doc(loyaltyprogramResult.docs[0].id).update(loyaltyprogramUpdate);
+
+//             // Step 4: update discount (used)
+//             var discountUpdate = {
+//                 status: "USED",
+//                 timestamp_Used: current_timestamp,
+//                 usedOnOrderID: newOrderRef.id
+//             };
+//             console.log("the discount ID is...")
+//             console.log(discountResult.docs[0].id)
+//             await admin.firestore().collection("discount").doc(discountResult.docs[0].id).update(discountUpdate);
+
+//             // Step 5: End and send 200 status
+//             console.log("known user, known discount code");
+//             res.sendStatus(200);
+        
+//         } else {                                //it's a KNOWN USER + UNKNOWN DISCOUNT
+
+//             console.log("known user, unknown discount code");
+//             res.sendStatus(200);
+
+//             // add order
+//             // add history (order)
+//             // add history (discount)
+//             // update loyaltyprogram (points)
+//         }
+
+//     } else {                                    //it's an UNKNOWN USER + KNOWN REFERRAL, UNKNOWN USER + UNKNOWN DISCOUNT
+
+//         //Is the discount a referral code?
+//         const referralResult = await admin.firestore().collection("referral")
+//             .where("domain", "==", shopDomain)
+//             .where("referralCode", "==", orderDiscountCode)
+//             .get()
+
+//         if (!referralResult.empty) {            //it's an UNKNOWN USER + KNOWN REFERRAL
+
+//             console.log("unknown user, known referral code");
+//             res.sendStatus(200);
+
+//         } else {                                //it's an UNKNOWN USER + UNKNOWN DISCOUNT
+
+//             console.log("unknown user, unknown discount code");
+//             res.sendStatus(200);
+
+//         }
+//     }
+
+// } else {                                        //it's a KNOWN USER or an UNKNOWN USER
+//     //DOES NOT HAVE DISCOUNT CODE
+    
+//     //Does the user have a loyalty account?
+//     if (!loyaltyprogramResult.empty) {          //it's a KNOWN USER
+
+//         var additionalPoints = Number(webhookData.total_line_items_price) * pointsPerDollar;
+//         var currentPoints = loyaltyprogramResult.docs[0].data().currentPointsBalance;
+//         var lifetimePoints = loyaltyprogramResult.docs[0].data().lifetimePoints;
+
+//         // Step 1: modify the order object as needed, then add it
+//         orderObject.pointsEarned = additionalPoints;  // set the amount of points earned
+//         await newOrderRef.set(orderObject);  // add the order
+
+//         // Step 2: modify the history object as needed, then add it
+//         historyObject.pointsEarned = additionalPoints;  // set the amount of points earned
+//         await newHistoryRef.set(historyObject);  // add history (order)
+
+//         // Step 3: update loyaltyprogram
+//         var loyaltyprogramUpdate = {
+//             currentPointsBalance: currentPoints + additionalPoints,
+//             lifetimePoints: lifetimePoints + additionalPoints
+//         };
+//         await admin.firestore().collection("loyaltyprograms").doc(loyaltyprogramResult.docs[0].id).update(loyaltyprogramUpdate);
+
+//         // Step 4: End and send 200 status
+//         console.log("known user, no discount code");
+//         res.sendStatus(200);
+
+//     } else {                                    //it's a UNKNOWN USER
+//         console.log("it's an unknown user");
+//         res.sendStatus(200);
+//     }
+// }

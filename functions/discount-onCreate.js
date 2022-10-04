@@ -6,47 +6,39 @@ const discountOnCreate = functions.firestore
   .document('discount/{discountID}')
   .onCreate(async (snap, context) => {
 
+    //First, get the entire referral object (to be updated later)
+    const discountObject = snap.data();
 
     //get the new discount ID
     const discountID = context.params.discountID;
 
     //get values from document
-    const company = "Athleisure";     //snap.data().company; //NEED TO FIX THIS!!!! CONVERT companyName to company
-    const companyID = snap.data().companyID;
-    const companyName = snap.data().companyName;
-    const dollarAmount = snap.data().dollarAmount;
-    const domain = snap.data().domain;
-    const email = snap.data().email;
-    const graphqlID = snap.data().graphqlID;
-    const minimumSpendRequired = snap.data().minimumSpendRequired;
-    const pointsSpent = snap.data().pointsSpent;
-    const status = snap.data().status;
-    const userID = snap.data().userID;
+    const code = snap.data().card.discountCode;
+    const rewardAmount = snap.data().reward.rewardAmount;
+    const domain = snap.data().ids.domain;
+    const minimumSpendRequired = snap.data().reward.minimumSpendRequired;
+    const pointsSpent = snap.data().reward.pointsSpent;
 
-    // Create a custom discount code for the user based on their firstNameID
-    const firstNameID = snap.data().firstNameID;
+    const status = snap.data().status.status;
 
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    const randomArray = Array.from(
-        { length: 2 },
-        (v, k) => chars[Math.floor(Math.random() * chars.length)]
-        );
+    // const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    // const randomArray = Array.from(
+    //     { length: 2 },
+    //     (v, k) => chars[Math.floor(Math.random() * chars.length)]
+    //     );
     
-    const code = firstNameID + randomArray.join("");
+    //const code = firstNameID // + randomArray.join("");
     
 
     //Create the additional variables you need
-    const title = pointsSpent.toString() + " Points Redeemed for $" + dollarAmount.toString() + " Discount";
-    const current_timestamp_milliseconds = new Date().getTime();
-    const current_timestamp = Math.round(current_timestamp_milliseconds / 1000);
+    const title = code + " for $" + rewardAmount.toString() + " (spent " + pointsSpent.toString() + " Points)";
 
 
     //Create the JSON to send to the GraphQL API
     const createJSON = {
         code: code,
-        dollarAmount: dollarAmount,
+        rewardAmount: rewardAmount,
         domain: domain,
-        graphqlID: graphqlID,
         title: title,
         usageLimit: 1
     }; 
@@ -58,47 +50,53 @@ const discountOnCreate = functions.firestore
         headers: { "Content-Type": "application/json" }
     });
     
-    // create entry for this discount
-    const responseData = await response.json();
-    const gid = responseData.graphqlID;
-    const discountUpdate = {
-        code: code,
-        discountID: discountID,
-        graphqlID: gid,
-        historyID: discountID,
-        status: "ACTIVE",
-        timestamp_Active: current_timestamp
-    };
+    if (response.status == 201) {
 
-    //create history entry for this discount
-    const historyDoc = {
-        companyID: companyID,
-        discountAmount: dollarAmount.toString(),
-        discountCode: code,
-        discountCodeID: discountID,
-        domain: "",                 //need to get the correct domains
-        email: email,
-        historyID: discountID,
-        itemIDs: [],
-        item_firstItemTitle: "",
-        orderID: "fill in later",
-        orderStatusURL: "",
-        pointsEarned: pointsSpent * -1,
-        numberOfReviews: 0,
-        referralID: "",
-        referralCode: "",
-        referredOrderID: "",
-        shopifyOrderID: 0,
-        type: "DISCOUNTCODECREATED",               //REFERRAL, REVIEW, ORDER, DISCOUNTCODECREATED, DISCOUNTCODEUSED
-        timestamp: current_timestamp,
-        totalPrice: 0,
-        userID: userID
-    };
+        console.log(code);
+        console.log("Discount created successfully!");
+
+        // grab the response from Shopify
+        const responseData = await response.json();
+        
+        // grab updates for the discount object
+        const gid = responseData.graphqlID;
+
+        //check to see if it's a PERSONAL-CARD-PERMANENT or just a regular single-use code
+        const cardType = snap.data().card.cardType;
+
+        if (cardType == "PERSONAL-CARD-PERMANENT") {
+
+            //if so, mark it as pending (don't know if user wants it yet)
+            discountObject.status.status = "CREATED-PendingUserApproval";
+
+        } else {
+
+            discountObject.status.status = "ACTIVE";
+
+        }
+
+
+        discountObject.ids.graphQLID = gid; 
+
+        return admin.firestore().collection("discount").doc(discountID).update(discountObject);
+
+    } else {
+
+        console.log(code);
+        console.log("ERROR CREATING DISCOUNT");
+
+        // const discountUpdate = {
+        //     code: code,
+        //     available: false
+        // };
+
+        discountObject.status.failedToBeCreated = true;
+        discountObject.status.status = "UNAVAILABLE";
+
+        return admin.firestore().collection("discount").doc(discountID).update(discountObject);
+    }
 
     
-    
-    await admin.firestore().collection("history").doc(discountID).set(historyDoc);
-    return admin.firestore().collection("discount").doc(discountID).update(discountUpdate);
-})
+});
 
 export default discountOnCreate;

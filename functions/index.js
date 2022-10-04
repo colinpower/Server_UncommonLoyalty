@@ -12,28 +12,33 @@ import functions from "firebase-functions";
 import shopifyReceiveWebhook from "./shopify-receiveWebhook.js";
 import shopifyReceiveWebhook2 from "./shopify-receiveWebhook2.js";
 import shopifyCreateDiscount from "./shopify-createDiscount.js";
+import shopifyUpdateDiscount from "./shopify-updateDiscount.js";
 
 // ---- Shopify Export ----
 //export const shopifyAuth = functions.https.onRequest(app);
 export const shopify_receiveWebhook = functions.https.onRequest(shopifyReceiveWebhook);
 export const shopify_receiveWebhook2 = functions.https.onRequest(shopifyReceiveWebhook2);
 export const shopify_createDiscount = functions.https.onRequest(shopifyCreateDiscount);
+export const shopify_updateDiscount = functions.https.onRequest(shopifyUpdateDiscount);
 
 
 // ---- Firestore Function Import ----
 import authOnCreate from "./auth-onCreate.js";
 import discountOnCreate from "./discount-onCreate.js";
+import discountAdditionOnCreate from "./discountAddition-onCreate.js";
 import itemOnCreate from "./item-onCreate.js";
-import referralOnCreate from "./referral-onCreate.js";
+import orderOnCreate from "./order-onCreate.js";
 import reviewOnCreate from "./review-onCreate.js";
-//import reviewOnCreate from "./createHistoryOnNewOrder.js";
+import referralOnCreate from "./referral-onCreate.js";
 
 // ---- Firestore Function Export ----
 export const auth_onCreate = authOnCreate;
 export const discount_onCreate = discountOnCreate;
+export const discountAddition_onCreate = discountAdditionOnCreate;
 export const item_onCreate = itemOnCreate;
-export const referral_onCreate = referralOnCreate;
+export const order_onCreate = orderOnCreate;
 export const review_onCreate = reviewOnCreate;
+export const referral_onCreate = referralOnCreate;
 
 
 
