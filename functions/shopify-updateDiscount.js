@@ -39,6 +39,9 @@ shopifyUpdateDiscount.post("/", async (req, res) => {
     var domain = req.body.domain;
     var graphqlID = req.body.graphqlID;
 
+    console.log("reached this point of the shopifyUpdateDiscount");
+    console.log(rewardAmount.toString());
+
     //#region Step 2: Use company name to get correct access token from process.env
     switch (domain) {
         case "athleisure-la.myshopify.com":
@@ -90,6 +93,10 @@ shopifyUpdateDiscount.post("/", async (req, res) => {
 
     //Auth with Shopify
     const client = new Shopify.Clients.Graphql(domain, accessToken);
+
+    console.log("logging the update and variables")
+    console.log(discountUpdate);
+    console.log(variables);
       
     //Making request to endpoint
     const result = await client.query({

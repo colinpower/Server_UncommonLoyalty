@@ -18,7 +18,7 @@ const discountAdditionOnCreate = functions.firestore
     const graphqlID = snap.data().graphqlID;
     const rewardAmount = snap.data().rewardAmount;
     const minimumSpendRequired = snap.data().minimumSpendRequired;
-    const pointsSpent = snap.data().reward.pointsSpent;
+    const pointsSpent = snap.data().pointsSpent;
     const status = snap.data().status;
 
     // const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -36,16 +36,17 @@ const discountAdditionOnCreate = functions.firestore
         graphqlID: graphqlID
     }; 
 
+    console.log("about to make a request to the endpoint");
     //make a request to create the discount
     const response = await fetch("https://us-central1-uncommon-loyalty.cloudfunctions.net/shopify_updateDiscount", {
-        method: "POST", 
+        method: "POST",          
         body: JSON.stringify(createJSON),
         headers: { "Content-Type": "application/json" }
     });
     
     if (response.status == 201) {
 
-        console.log(code);
+        //console.log(code);
         console.log("Discount created successfully!");
 
         // grab the response from Shopify
@@ -69,7 +70,7 @@ const discountAdditionOnCreate = functions.firestore
 
     } else {
 
-        console.log(code);
+        //console.log(code);
         console.log("ERROR CREATING DISCOUNT");
 
         const discountUpdate = {
